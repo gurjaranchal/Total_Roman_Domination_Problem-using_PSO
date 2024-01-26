@@ -150,6 +150,7 @@ public:
         srand(time(0)); 
         while(FindLabelNegative(labelledSet)){
             int currVertex = (rand()%n) + 1;
+            // cout<<endl<<"Curr Vertex "<<currVertex<<endl;
             if(labelledSet[currVertex]==-1){
                 labelledSet[currVertex] =2;
                 labelNeighbours(currVertex);
@@ -167,14 +168,21 @@ class particle{
     public:
     double* velocity;
     double* position;
+    double* localBest;
     void init(int d)
     {
         
         velocity = new double[d];
         position = new double[d];
+        localBest = new double[d];
+        //initial velocity
+        for(int i=0;i<d;i++){
+            velocity[i] = 0; 
+        }
     }
     // particle(int dimsize):velocity(dimsize,0),position(dimsize){}
 };
+
 class Swarm{
     private:
         Graph graph;
@@ -182,42 +190,78 @@ class Swarm{
         Heuristic2 H2;
         int popsize, dim;
         int c1, c2, w,r1,r2;
-        int localBest,globalBest;
+        double* globalBest;
+        double globalBestValue;
         particle* p;
+        int minIndex;
+        
     public:
         Swarm(int n,int d,const Graph& g) : graph(g),H1(graph,d),H2(graph,d){
         popsize = n;
         dim =d;
-        r1=1;
-        r2=1;
+        globalBest = new double[d+1];
+        minIndex = -1;
         p = new particle[n];
         for(int i=0;i<n;i++){
-            p[i].init(d);
+            p[i].init(d+1);
         }
       }
+      
         void initialise(int c1, int c2, int w){
             this->c1 = c1;
             this->c2 = c2;
             this->w = w;
+            
         }
+        
         void GenerateInitialSolution(){
-            // p.resize(popsize, particle(dim));
-
+            
             int mini = INT_MAX;
+            // apply Heuristic1 to generate Solutions
             for(int itr = 0;itr < popsize/2; itr++){
                 H1.findLabelledSet();
                 p[itr].position = H1.getLabelledSet();
                 int obj = ObjectiveValue(p[itr].position);
-                mini = min(mini,obj);
+                if(mini > obj){
+                    mini = obj;
+                    minIndex = itr;
+                }
             }
+            
+            // apply Heuristic2 to generate Solutions
             for(int itr = popsize/2;itr<popsize;itr++){
                 H2.findLabelledSet();
                 p[itr].position = H2.getLabelledSet();
                 int obj = ObjectiveValue(p[itr].position);
-                mini = min(mini,obj);
+                if(mini > obj){
+                    mini = obj;
+                    minIndex = itr;
+                }
             }
-            globalBest = mini;
-            
+            globalBestValue = mini;
+            // print initial solutions
+            globalBest[0] = 0;
+            cout<<"Initial Solution/Position: \n";
+            for(int i=0;i<popsize;i++){
+                cout<<"S"<<i<<": ";
+                if(i==minIndex)globalBest = p[i].position;
+                for(int k=1;k<=dim;k++){
+                        cout<<p[i].position[k]<<" ";
+                        p[i].localBest[k] = p[i].position[k];
+                        
+                }
+                cout<<endl;    
+            }
+            cout<<endl<<"--------------------------------------------------\n"<<endl;
+             cout<<"Initial Velocity: \n";
+            for(int i=0;i<popsize;i++){
+                cout<<"S"<<i<<": ";
+                for(int k=1;k<=dim;k++){
+                        cout<<p[i].velocity[k]<<" ";
+                }
+                cout<<endl;    
+            }
+            cout<<endl<<"--------------------------------------------------\n"<<endl;                
         }
         int ObjectiveValue(double* p){
             int sum=0;
@@ -227,14 +271,16 @@ class Swarm{
             return sum;
         }
         void mainLoop(int iter){
-            for(int it=0;it<iter;it++){
-                int globalBestSolution = globalBest;
+            for(int it=1;it<iter;it++){
+                cout<<"Solution After "<<it<<" iteration\n"<<endl;
                 for(int i=0;i<popsize;i++){
-                    localBest = i;
-                    for(int j=0;j<dim;j++){
+                    for(int j=1;j<=dim;j++){
+                        
+                            r1 = getRandomNumber(0,2);
+                            r2 = getRandomNumber(0,2);
                             //update velocity
-                            p[i].velocity[j] = w * p[i].velocity[j] + c1 * r1 * (p[localBest].position[j] - p[i].position[j]) +
-                                c2 * r2 * (p[globalBestSolution].position[j] - p[i].position[j]);
+                            p[i].velocity[j] = w * p[i].velocity[j] + c1 * r1 * (p[i].localBest[j] - p[i].position[j]) +
+                                c2 * r2 * (globalBest[j] - p[i].position[j]);
 
                             //update position
                             p[i].position[j] = p[i].position[j] + p[i].velocity[j];
@@ -244,22 +290,42 @@ class Swarm{
                         
                         }
                         
-                        //check feasible
-                        //make feasible
+                        //check and make feasible
                         MakeFeasible(p[i].position);
-                        cout<<"solution : ";
+                        //old objective Value
+                        double fitnessValueOld = ObjectiveValue(p[i].localBest);
+                        // new Objective Value
+                        double fitnessValueNew = ObjectiveValue(p[i].position);
+
+                        if(fitnessValueNew < fitnessValueOld){
+                            //update localBest
+                            for(int k=1;k<=dim;k++){
+                                p[i].localBest[k] = p[i].position[k];
+                            }
+                        }else {
+                            //update position as previous
+                            for(int k=1;k<=dim;k++){
+                                p[i].position[k] = p[i].localBest[k];
+                            }
+                        }
+
+                        if(globalBestValue > fitnessValueOld){
+                            //update globalBest
+                            for(int k=1;k<=dim;k++){
+                                globalBest[k] = p[i].localBest[k];
+                            }
+                            globalBestValue = fitnessValueOld;
+                        }
+                        // print feasible solution 
+                        cout<<"S"<<i<<": ";
                         for(int k=1;k<=dim;k++){
                             cout<<p[i].position[k]<<" ";
                         }
                         cout<<endl;
-                        localBest = ObjectiveValue(p[i].position);
-                        if(localBest<globalBest){
-                            globalBest = localBest;
-                            globalBestSolution = i;
-                        }
 
                     }
-                    cout<<"gBest = "<<globalBest<<endl;
+                    cout<<"gBest = "<<globalBestValue<<endl;
+                    cout<<endl<<"--------------------------------------------------\n"<<endl;    
                 }
                 
         }
@@ -308,7 +374,12 @@ class Swarm{
                 }
             }
         }
+        double getRandomNumber(double lower,double upper){
+
+    return ((double) rand()/ RAND_MAX) * (upper-lower) + lower;
+}
 };
+
 int main() {
     
     Graph G1;
@@ -317,19 +388,33 @@ int main() {
     G1.addEdge(2, 4);
     G1.addEdge(3, 4);
     G1.addEdge(4, 5);
+    int n1=5; // number of nodes
     
     Graph G2;
-    G1.addEdge(1, 2);
-    G1.addEdge(1, 3);
-    G1.addEdge(1, 5);
-    G1.addEdge(3, 4);
-    G1.addEdge(3, 5);
-    G1.addEdge(3, 2);
+    G2.addEdge(1, 2);
+    G2.addEdge(1, 3);
+    G2.addEdge(1, 5);
+    G2.addEdge(3, 4);
+    G2.addEdge(3, 5);
+    G2.addEdge(3, 2);
+    int n2=5; // number of nodes
     
-    int n=5; // number of nodes
+    Graph G3;
+    G3.addEdge(1,2);
+    G3.addEdge(1,4);
+    G3.addEdge(2,3);
+    G3.addEdge(3,4);
+    G3.addEdge(4,6);
+    G3.addEdge(5,6);
+    G3.addEdge(7,6);
+    G3.addEdge(8,5);
+    G3.addEdge(7,8);
+    int n3=8; // number of nodes
+    
     int popSize = 10;
-    Swarm s(popSize,n,G1);
-    // Swarm s(popSize,n,G2);
+    // Swarm s(popSize,n1,G1);
+    // Swarm s(popSize,n2,G2);
+    Swarm s(popSize,n3,G3);
     int c1=0.8, c2=0.8, w=0.5;
     s.initialise(c1,c2,w);
     s.GenerateInitialSolution();

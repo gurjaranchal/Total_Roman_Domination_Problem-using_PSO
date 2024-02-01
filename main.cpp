@@ -5,166 +5,11 @@
 #include <unordered_map>
 #include <ctime>
 #include <climits>
+#include "Graph.h"
+#include "Heuristic1.h"
+#include "Heuristic2.h"
 
 using namespace std;
-
-class Graph {
-public:
-    unordered_map<int, vector<int>> graph;
-
-    void addNode(int node) {
-        if (graph.find(node) == graph.end()) {
-            graph[node] = vector<int>();
-        }
-    }
-
-    void addEdge(int node1, int node2) {
-        addNode(node1);
-        addNode(node2);
-
-        graph[node1].push_back(node2);
-        graph[node2].push_back(node1);
-    }
-
-    vector<int> nodes() {
-        vector<int> result;
-        for (const auto& entry : graph) {
-            result.push_back(entry.first);
-        }
-        return result;
-    }
-
-    vector<int>& neighbors(int node) {
-        return graph[node];
-    }
-
-    int neighborsSize(int node){
-        return graph[node].size();
-    }
-};
-
-// According to max degree
-class Heuristic1 {
-private:
-    Graph graph;
-    double* labelledSet;
-    int n;
-
-public:
-    Heuristic1(const Graph& g,int size) : graph(g), n(size){
-        labelledSet = new double[size+1];
-        for(int i=0;i<=size;i++){
-            labelledSet[i] = -1;
-        }
-    }
-
-    vector<int> findMaxDegreeNode(){
-        vector<int> maxDegreeNodeList;
-        int mx=-1;
-        for(auto node:graph.nodes()){
-            if(labelledSet[node]==-1){
-                int s=graph.neighborsSize(node);
-                if(mx<s){
-                    mx = s;
-                }
-            }
-        }
-        for(auto node:graph.nodes()){
-            int s=graph.neighborsSize(node);
-            if(s==mx){
-                maxDegreeNodeList.push_back(node);
-            }
-        }
-        return maxDegreeNodeList;
-    }
-
-    void labelNeighbours(int node){
-        vector<int> neigh = graph.neighbors(node);
-        int n=neigh.size();
-        if(neigh.size()!=0){
-            labelledSet[neigh[0]] = 1;
-            for(int i=1; i<n;i++){
-                if(labelledSet[neigh[i]]==-1)
-                     labelledSet[neigh[i]]=0;
-            }
-        }
-        
-    }
-      bool FindLabelNegative(double* l){
-        for(int i=1;i<n+1;i++){
-            if(l[i]==-1){
-                return true;
-            }
-        }
-        return false;
-    }
-    void findLabelledSet() {
-        srand(time(0));
-        while(FindLabelNegative(labelledSet)){
-            vector<int> currVertexList = findMaxDegreeNode();
-            int currVertex = currVertexList[(rand()%currVertexList.size())];
-            cout<<endl<<"Curr Vertex "<<currVertex<<endl;
-            labelledSet[currVertex] =2;
-            labelNeighbours(currVertex);
-        }
-    }
-
-    double* getLabelledSet(){
-        return labelledSet;
-    }
-};
-
-class Heuristic2 {
-private:
-    Graph graph;
-    double* labelledSet;
-    int n;//total number of nodes in graph
-
-public:
-    Heuristic2(const Graph& g,int size) : graph(g), n(size) {
-        labelledSet = new double[size+1];
-        for(int i=0;i<=size;i++){
-            labelledSet[i] = -1;
-        }
-    }
-
-    void labelNeighbours(int node){
-        vector<int> neigh = graph.neighbors(node);
-        int n=neigh.size();
-        if(neigh.size()!=0){
-            labelledSet[neigh[0]] = 1;
-            for(int i=1; i<n;i++){
-                if(labelledSet[neigh[i]]==-1)
-                     labelledSet[neigh[i]]=0;
-            }
-        }
-        
-    }
-    bool FindLabelNegative(double* l){
-        for(int i=1;i<n+1;i++){
-            if(l[i]==-1){
-                return true;
-            }
-        }
-        return false;
-    }
-    void findLabelledSet() {
-        srand(time(0)); 
-        while(FindLabelNegative(labelledSet)){
-            int currVertex = (rand()%n) + 1;
-            cout<<endl<<"Curr Vertex "<<currVertex<<endl;
-            if(labelledSet[currVertex]==-1){
-                labelledSet[currVertex] =2;
-                labelNeighbours(currVertex);
-            }
-            
-        }
-    }
-
-    double* getLabelledSet(){
-        return labelledSet;
-    }
-};
 
 class particle{
     public:
@@ -182,7 +27,6 @@ class particle{
             velocity[i] = 0; 
         }
     }
-    // particle(int dimsize):velocity(dimsize,0),position(dimsize){}
 };
 
 class Swarm{
@@ -428,12 +272,9 @@ int main() {
         int v1,v2;
         cin>>v1>>v2;
         G.addEdge(v1,v2);
-
     }
     int popSize = 10;
     Swarm s(popSize,node,G);
-
-    
     int c1=0.8, c2=0.8, w=1;
     s.initialise(c1,c2,w);
     s.GenerateInitialSolution();
@@ -441,63 +282,3 @@ int main() {
 
     return 0;
 }
-
-/* Graph G1;
-    G1.addEdge(1, 2);
-    G1.addEdge(1, 3);
-    G1.addEdge(2, 4);
-    G1.addEdge(3, 4);
-    G1.addEdge(4, 5);
-    int n1=5; // number of nodes
-    
-    Graph G2;
-    G2.addEdge(1, 2);
-    G2.addEdge(1, 3);
-    G2.addEdge(1, 5);
-    G2.addEdge(3, 4);
-    G2.addEdge(3, 5);
-    G2.addEdge(3, 2);
-    int n2=5; // number of nodes
-    
-    Graph G3;
-    G3.addEdge(1,2);
-    G3.addEdge(1,4);
-    G3.addEdge(2,3);
-    G3.addEdge(3,4);
-    G3.addEdge(4,6);
-    G3.addEdge(5,6);
-    G3.addEdge(7,6);
-    G3.addEdge(8,5);
-    G3.addEdge(7,8);
-    int n3=8; // number of nodes
-    
-    Graph G4;
-    G4.addEdge(1,2);
-    G4.addEdge(2,3);
-    G4.addEdge(2,4);
-    G4.addEdge(3,5);
-    G4.addEdge(4,5);
-    G4.addEdge(4,6);
-    G4.addEdge(7,8);
-    G4.addEdge(6,8);
-    G4.addEdge(8,10);
-    G4.addEdge(9,8);
-    G4.addEdge(6,7);
-    int n4=10;
-    
-    Graph G5;
-    G5.addEdge(1,2);
-    G5.addEdge(1,3);
-    G5.addEdge(1,4);
-    G5.addEdge(2,3);
-    G5.addEdge(2,4);
-    G5.addEdge(3,4);
-
-    Graph G6;
-    G6.addEdge(1,2);
-    G6.addEdge(2,3);
-    G6.addEdge(3,4);
-    G6.addEdge(4,5);
-    G6.addEdge(5,6);
-    G6.addEdge(6,7);
-    G6.addEdge(7,1);*/

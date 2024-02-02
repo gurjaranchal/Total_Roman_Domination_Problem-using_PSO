@@ -31,10 +31,31 @@ bool Heuristic2::FindLabelNegative(double* l){
     }
     return false;
 }
+int Heuristic2::FindUnlabelledIndex(double* l,int r){
+    int ind =-1,c=0;
+    //count unlabelled Vertex 
+    for(int i=1;i<=n;i++){
+        if(l[i]==-1){
+            c++;
+        }
+    }
+    //take mod of r(random value) from remaining unlabeled vertex
+    r=(r%c)+1;
+    c=0;
+    for(int i=1;i<=n;i++){
+        if(l[i]==-1){
+            c++;
+        }
+        if(c==r)
+        return i;
+    }
+    return ind;
+}
 void Heuristic2::findLabelledSet() {
     srand(time(0)); 
     while(FindLabelNegative(labelledSet)){
-        int currVertex = (rand()%n) + 1;
+        int r = (rand()%n);
+        int currVertex = FindUnlabelledIndex(labelledSet,r);
         cout<<endl<<"Curr Vertex "<<currVertex<<endl;
         if(labelledSet[currVertex]==-1){
             labelledSet[currVertex] =2;

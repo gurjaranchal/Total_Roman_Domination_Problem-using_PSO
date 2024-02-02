@@ -8,6 +8,7 @@
 #include "Graph.h"
 #include "Heuristic1.h"
 #include "Heuristic2.h"
+// #include "Debug.h"
 
 using namespace std;
 
@@ -76,7 +77,7 @@ class Swarm{
             
             // apply Heuristic2 to generate Solutions
             for(int itr = popsize/2;itr<popsize;itr++){
-                Heuristic1 H2(graph,dim);
+                Heuristic2 H2(graph,dim);
                 cout<<"Itr "<<itr<<": ";
                 H2.findLabelledSet();
                 p[itr].position = H2.getLabelledSet();
@@ -98,6 +99,7 @@ class Swarm{
                         p[i].localBest[k] = p[i].position[k];
                         
                 }
+                // debug(p[i].position);
                 cout<<endl;    
             }
             cout<<endl<<"--------------------------------------------------\n"<<endl;
@@ -121,7 +123,7 @@ class Swarm{
         }
         void mainLoop(int iter){
             for(int it=1;it<iter;it++){
-                cout<<"Solution After "<<it<<" iteration\n"<<endl;
+                // cout<<"Solution After "<<it<<" iteration\n"<<endl;
                 for(int i=0;i<popsize;i++){
                     for(int j=1;j<=dim;j++){
                         
@@ -169,27 +171,27 @@ class Swarm{
                         }
                         
                         // print updated velocity
-                        cout<<"V"<<i<<": ";
+                        // cout<<"V"<<i<<": ";
                         for(int k=1;k<=dim;k++){
-                            cout<<p[i].velocity[k]<<" ";
+                            // cout<<p[i].velocity[k]<<" ";
                         }
                         
                         // print feasible solution 
-                        cout<<"S"<<i<<": ";
+                        // cout<<"S"<<i<<": ";
                         for(int k=1;k<=dim;k++){
-                            cout<<p[i].position[k]<<" ";
+                            // cout<<p[i].position[k]<<" ";
                         }
-                        cout<<endl;
+                        // cout<<endl;
                         // print feasible solution 
                         // cout<<"V "<<i<<": ";
                         for(int k=1;k<=dim;k++){
                             // cout<<p[i].velocity[k]<<" ";
                         }
-                        cout<<endl;
+                        // cout<<endl;
 
                     }
-                    cout<<"gBest = "<<globalBestValue<<endl;
-                    cout<<endl<<"--------------------------------------------------\n"<<endl;    
+                    // cout<<"gBest = "<<globalBestValue<<endl;
+                    // cout<<endl<<"--------------------------------------------------\n"<<endl;    
                 }
                 
         }
@@ -254,6 +256,7 @@ class Swarm{
                     p[i]=1;
                 }
             }
+             
         }
         double getRandomNumber(double lower,double upper){
 
@@ -262,6 +265,7 @@ class Swarm{
 };
 
 int main() {
+    
     int node,edge;
     cout<<"Enter Number of Nodes: ";
     cin>>node;
@@ -273,7 +277,8 @@ int main() {
         cin>>v1>>v2;
         G.addEdge(v1,v2);
     }
-    int popSize = 10;
+   
+    int popSize = 6;
     Swarm s(popSize,node,G);
     int c1=0.8, c2=0.8, w=1;
     s.initialise(c1,c2,w);

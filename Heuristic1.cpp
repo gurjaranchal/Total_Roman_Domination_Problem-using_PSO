@@ -57,7 +57,10 @@ Heuristic1::Heuristic1(const Graph& g,int size) : graph(g), n(size){
         srand(time(0));
         while(FindLabelNegative(labelledSet)){
             std::vector<int> currVertexList = findMaxDegreeNode();
-            int currVertex = currVertexList[(rand()%currVertexList.size())];
+            int r= (rand()%currVertexList.size());
+            // cout<<"Random: "<<r;
+            int currVertex = currVertexList[r+1];
+
             std::cout<<"\nCurr Vertex "<<currVertex<<"\n";
             labelledSet[currVertex] =2;
             labelNeighbours(currVertex);

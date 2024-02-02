@@ -17,6 +17,9 @@ public:
     bool FindLabelNegative(double* l);
     void findLabelledSet();
     double* getLabelledSet();
+    ~ Heuristic1(){
+        delete[] labelledSet;
+    }
 };
 
 #endif // HEURISTIC1_H

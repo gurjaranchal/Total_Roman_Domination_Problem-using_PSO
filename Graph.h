@@ -12,6 +12,7 @@ public:
     void addNode(int node);
     void addEdge(int node1, int node2);
     std::vector<int> nodes();
+    std::vector<int> UnlabeledNeighbours(int node,double* l);
     std::vector<int>& neighbors(int node);
     int neighborsSize(int node);
 };

@@ -12,7 +12,7 @@ private:
 
 public:
     Heuristic1(const Graph& g, int size);
-    std::vector<int> findMaxDegreeNode();
+    std::vector<int> findMaxDegreeNode(double* l);
     void labelNeighbours(int node);
     bool FindLabelNegative(double* l);
     void findLabelledSet();

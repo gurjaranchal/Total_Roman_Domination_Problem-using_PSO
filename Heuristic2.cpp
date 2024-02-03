@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <ctime>
+#include <random>
 using namespace std;
 
 Heuristic2::Heuristic2(const Graph& g,int size) : graph(g), n(size) {
@@ -52,11 +53,14 @@ int Heuristic2::FindUnlabelledIndex(double* l,int r){
     return ind;
 }
 void Heuristic2::findLabelledSet() {
-    srand(time(0)); 
+    // srand(time(0)); 
+    random_device rd;
+    mt19937 gen(rd());
     while(FindLabelNegative(labelledSet)){
-        int r = (rand()%n);
+        uniform_int_distribution<> distribution(1, n);
+        int r = distribution(gen);
         int currVertex = FindUnlabelledIndex(labelledSet,r);
-        cout<<endl<<"Curr Vertex "<<currVertex<<endl;
+        // cout<<endl<<"Curr Vertex "<<currVertex<<endl;
         if(labelledSet[currVertex]==-1){
             labelledSet[currVertex] =2;
             labelNeighbours(currVertex);

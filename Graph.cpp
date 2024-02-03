@@ -27,7 +27,15 @@ vector<int> Graph::nodes() {
 vector<int>& Graph::neighbors(int node) {
     return graph[node];
 }
-
+vector<int> Graph::UnlabeledNeighbours(int node,double* l){
+    vector<int> ans;
+    for(auto it:graph[node]){
+        if(l[it]==-1){
+            ans.push_back(it);
+        }
+    }
+    return ans;
+}
 int Graph::neighborsSize(int node){
     return graph[node].size();
 }

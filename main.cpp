@@ -17,16 +17,18 @@ class particle{
     double* velocity;
     double* position;
     double* localBest;
+    double* localBestV;
     void init(int d)
     {
         
         velocity = new double[d];
         position = new double[d];
         localBest = new double[d];
+        localBestV = new double[d];
         //initial velocity
-        for(int i=0;i<d;i++){
-            velocity[i] = 0; 
-        }
+        // for(int i=0;i<d;i++){
+        //     velocity[i] = 0; 
+        // }
     }
 };
 
@@ -34,8 +36,8 @@ class Swarm{
     private:
         Graph graph;
         int popsize, dim;
-        double c1, c2, w,r1,r2;
-        double* globalBest;
+        double c1, c2, w;
+        double* globalBestSolution;
         double globalBestValue;
         particle* p;
         int minIndex;
@@ -44,7 +46,7 @@ class Swarm{
         Swarm(int n,int d,const Graph& g) : graph(g){
         popsize = n;
         dim =d;
-        globalBest = new double[d+1];
+        globalBestSolution = new double[d+1];
         minIndex = -1;
         p = new particle[n];
         for(int i=0;i<n;i++){
@@ -52,7 +54,7 @@ class Swarm{
         }
       }
       
-        void initialise(int c1, int c2, int w){
+        void initialise(double c1, double c2, double w){
             this->c1 = c1;
             this->c2 = c2;
             this->w = w;
@@ -61,7 +63,7 @@ class Swarm{
         
         void GenerateInitialSolution(){
             
-            int mini = INT_MAX;
+            int minimumObjective = INT_MAX;
             // apply Heuristic1 to generate Solutions
             for(int itr = 0;itr < popsize/2; itr++){
                 Heuristic1 H1(graph,dim);
@@ -69,8 +71,8 @@ class Swarm{
                 double* l = H1.getLabelledSet();
                 copy(l, l + dim + 1, p[itr].position);
                 int obj = ObjectiveValue(p[itr].position);
-                if(mini > obj){
-                    mini = obj;
+                if(minimumObjective > obj){
+                    minimumObjective = obj;
                     minIndex = itr;
                 }
             }
@@ -82,37 +84,41 @@ class Swarm{
                 double* l = H2.getLabelledSet();
                 copy(l, l + dim + 1, p[itr].position);
                 int obj = ObjectiveValue(p[itr].position);
-                if(mini > obj){
-                    mini = obj;
+                if(minimumObjective > obj){
+                    minimumObjective = obj;
                     minIndex = itr;
                 }
             }
-            // globalBestValue = mini;
-            // // print initial solutions
-            // globalBest[0] = 0;
-            cout<<"Initial Solution/Position: \n";
+            globalBestValue = minimumObjective;
+            // // print initial solutions and update local best and global best solutions
+            // cout<<"Initial Solution/Position: \n";
             for(int i=0;i<popsize;i++){
-                cout<<"S"<<i<<": ";
-                // if(i==minIndex)globalBest = p[i].position;
+                // cout<<"S"<<i<<": ";
+                if(i==minIndex)globalBestSolution = p[i].position;
                 for(int k=1;k<=dim;k++){
-                        cout<<p[i].position[k]<<" ";
-                        // p[i].localBest[k] = p[i].position[k];
-                        
+                        // cout<<p[i].position[k]<<" ";
+                        p[i].localBest[k] = p[i].position[k];
                 }
-                // debug(p[i].position);
-                cout<<endl;    
+                // cout<<endl;    
             }
-            cout<<endl<<"--------------------------------------------------\n"<<endl;
-             cout<<"Initial Velocity: \n";
+            // cout<<endl<<"--------------------------------------------------\n"<<endl;
+            //initilaize the velocity
+            // cout<<"Initial Velocity: \n";
             for(int i=0;i<popsize;i++){
-                cout<<"S"<<i<<": ";
-                for(int k=1;k<=dim;k++){
-                        p[i].velocity[k] = 0.1*p[i].position[k];
-                        cout<<p[i].velocity[k]<<" ";
+                for(int k=1;k<=dim;k++) {
+                p[i].velocity[k] = 0.1*p[i].position[k];
+                p[i].localBestV[k] = p[i].velocity[k];
                 }
-                cout<<endl;    
             }
-            cout<<endl<<"--------------------------------------------------\n"<<endl;                
+            // print velocity
+            // for(int i=0;i<popsize;i++){
+            //     // cout<<"\nV"<<i<<": ";
+            //     for(int k=1;k<=dim;k++)cout<<p[i].velocity[k]<<" "; 
+            // }
+            // cout<<endl<<"--------------------------------------------------\n"<<endl;  
+            // cout<<"After Initial Solution Gbest Solution is: ";
+            // for(int i=0;i<=dim;i++)cout<<globalBestSolution[i]<<" ";    
+            // cout<<endl<<"--------------------------------------------------\n"<<endl;            
         }
         int ObjectiveValue(double* p){
             int sum=0;
@@ -123,22 +129,25 @@ class Swarm{
         }
         void mainLoop(int iter){
             for(int it=1;it<iter;it++){
-                cout<<"Solution After "<<it<<" iteration\n"<<endl;
+                // cout<<"Solution After "<<it<<" iteration\n"<<endl;
                 for(int i=0;i<popsize;i++){
                     for(int j=1;j<=dim;j++){
-                        
-                            r1 = getRandomNumber(0,2);
-                            r2 = getRandomNumber(0,2);
+                            // random value in between [0,1] 
+                            // use if any custom range ((double) rand()/ RAND_MAX) * (upper-lower) + lower
+                            double r1 = ((double)rand() / (RAND_MAX));
+                            double r2 = ((double)rand() / (RAND_MAX));
                             // cout<<endl<<"r1: " <<r1<<", r2: "<<r2<<endl;
                             //update velocity
-                            p[i].velocity[j] = w * p[i].velocity[j] + c1 * r1 * (p[i].localBest[j] - p[i].position[j]) +
-                                c2 * r2 * (globalBest[j] - p[i].position[j]);
+                            double a=(w * p[i].velocity[j]) + (c1 * r1 * (p[i].localBest[j] - p[i].position[j])) +
+                                (c2 * r2 * (globalBestSolution[j] - p[i].position[j]));
+                            p[i].velocity[j] = a;
+                            // cout<<a<<" , "<<p[i].velocity[j]<<" ";
                             //update position
                             p[i].position[j] = p[i].position[j] + p[i].velocity[j];
 
                             // set uper and lower bound
                             p[i].position[j] = SetThreshold(p[i].position[j]);
-                        
+                            
                         }
                         
                         //check and make feasible
@@ -149,39 +158,44 @@ class Swarm{
                         double fitnessValueOld = ObjectiveValue(p[i].localBest);
                         // new Objective Value
                         double fitnessValueNew = ObjectiveValue(p[i].position);
+                        // cout<<"Fitness Old: "<<fitnessValueOld<<endl;
+                        // cout<<"Fitness New: "<<fitnessValueNew<<endl;
 
-                        if(fitnessValueNew < fitnessValueOld){
+
+                        if(fitnessValueNew <= fitnessValueOld){
                             //update localBest
                             for(int k=1;k<=dim;k++){
                                 p[i].localBest[k] = p[i].position[k];
+                                p[i].localBestV[k] = p[i].velocity[k];
                             }
                         }else {
-                            //update position as previous
-                            // for(int k=1;k<=dim;k++){
-                            //     p[i].position[k] = p[i].localBest[k];
-                            // }
+                            // update position as previous
+                            for(int k=1;k<=dim;k++){
+                                p[i].position[k] = p[i].localBest[k];
+                                p[i].velocity[k] = p[i].localBestV[k];
+                            }
                         }
 
                         if(globalBestValue > fitnessValueOld){
                             //update globalBest
                             for(int k=1;k<=dim;k++){
-                                globalBest[k] = p[i].localBest[k];
+                                globalBestSolution[k] = p[i].localBest[k];
                             }
                             globalBestValue = fitnessValueOld;
                         }
                         
-                        // print updated velocity
+                       // print updated velocity
                         // cout<<"V"<<i<<": ";
                         // for(int k=1;k<=dim;k++){
                         //     cout<<p[i].velocity[k]<<" ";
                         // }
                         
                         // print feasible solution 
-                        cout<<"S"<<i<<": ";
-                        for(int k=1;k<=dim;k++){
-                            cout<<p[i].position[k]<<" ";
-                        }
-                        cout<<"   \n";
+                        // cout<<"S"<<i<<": ";
+                        // for(int k=1;k<=dim;k++){
+                        //     cout<<p[i].position[k]<<" ";
+                        // }
+                        // cout<<"   \n";
                         // cout<<endl;
                         // print feasible solution 
                         // cout<<"V"<<i<<": ";
@@ -191,9 +205,12 @@ class Swarm{
                         // cout<<endl<<endl;
 
                     }
-                    cout<<"gBest = "<<globalBestValue<<endl;
-                    cout<<endl<<"--------------------------------------------------\n"<<endl;    
+                    // cout<<endl<<"--------------------------------------------------\n"<<endl;    
                 }
+                cout<<"Optimal Solution After "<<iter<<": ";
+                for(int k=1;k<=dim;k++)cout<<globalBestSolution[k]<<" ";
+                cout<<endl;
+                cout<<"gBest = "<<globalBestValue<<endl;
                 
         }
         
@@ -246,7 +263,10 @@ class Swarm{
                 if(p[i]==2 or p[i]==1){
                     if(!neigh1 && !neigh2){
                         int getNeigh = HasNeighbourZero(p[i],p);
-                        if(getNeigh!=-1) p[getNeigh] = 1;
+                        if(getNeigh!=-1){
+                            p[getNeigh] = 1;
+                            p[i]= 1;
+                        }
                     }
                 }else{
                     if(neigh2)continue;
@@ -256,21 +276,14 @@ class Swarm{
                     }
                     p[i]=1;
                 }
-            }
-             
+            }      
         }
-        double getRandomNumber(double lower,double upper){
-
-    return ((double) rand()/ RAND_MAX) * (upper-lower) + lower;
-}
 };
 
 int main() {
     
     int node,edge;
-    // cout<<"Enter Number of Nodes: ";
     cin>>node;
-    // cout<<"Enter Number of Edges: ";
     cin>>edge;
     Graph G;
     while(edge--){
@@ -279,12 +292,13 @@ int main() {
         G.addEdge(v1,v2);
     }
    
-    int popSize = 8;
+    int popSize = 1000;
     Swarm s(popSize,node,G);
-    int c1=0.8, c2=0.8, w=1;
+    double c1=0.8, c2=0.8, w=0.5;
     s.initialise(c1,c2,w);
     s.GenerateInitialSolution();
-    // s.mainLoop(10);
+    s.mainLoop(10000);
 
     return 0;
 }
+// g++ .\main.cpp .\Heuristic1.cpp .\Heuristic2.cpp .\Graph.cpp

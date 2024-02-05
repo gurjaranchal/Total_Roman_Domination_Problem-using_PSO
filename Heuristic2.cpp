@@ -61,9 +61,16 @@ void Heuristic2::findLabelledSet() {
         int r = distribution(gen);
         int currVertex = FindUnlabelledIndex(labelledSet,r);
         // cout<<endl<<"Curr Vertex "<<currVertex<<endl;
-        if(labelledSet[currVertex]==-1){
-            labelledSet[currVertex] =2;
-            labelNeighbours(currVertex);
+        if(labelledSet[currVertex]==-1)
+        {
+            vector<int> neighUnlabeled = graph.UnlabeledNeighbours(currVertex,labelledSet);
+            if(neighUnlabeled.size()>=2){
+                labelledSet[currVertex] =2;
+                labelNeighbours(currVertex);
+            }else{
+                labelledSet[currVertex] =1;
+                labelNeighbours(currVertex);
+            }
         }
         
     }

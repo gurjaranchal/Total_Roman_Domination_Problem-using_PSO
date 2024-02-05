@@ -70,8 +70,14 @@ void Heuristic1::findLabelledSet() {
         int currVertex = currVertexList[r-1];
         if(labelledSet[currVertex]==-1)
         {
-        labelledSet[currVertex] =2;
-        labelNeighbours(currVertex);
+            vector<int> neighUnlabeled = graph.UnlabeledNeighbours(currVertex,labelledSet);
+            if(neighUnlabeled.size()>=2){
+                labelledSet[currVertex] =2;
+                labelNeighbours(currVertex);
+            }else{
+                labelledSet[currVertex] =1;
+                labelNeighbours(currVertex);
+            }
         }
     }
 }

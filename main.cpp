@@ -162,7 +162,7 @@ class Swarm{
                         // cout<<"Fitness New: "<<fitnessValueNew<<endl;
 
 
-                        if(fitnessValueNew <= fitnessValueOld){
+                        if(fitnessValueNew < fitnessValueOld){
                             //update localBest
                             for(int k=1;k<=dim;k++){
                                 p[i].localBest[k] = p[i].position[k];
@@ -195,7 +195,7 @@ class Swarm{
                         // for(int k=1;k<=dim;k++){
                         //     cout<<p[i].position[k]<<" ";
                         // }
-                        // cout<<"   \n";
+                        // // cout<<"   \n";
                         // cout<<endl;
                         // print feasible solution 
                         // cout<<"V"<<i<<": ";
@@ -205,6 +205,7 @@ class Swarm{
                         // cout<<endl<<endl;
 
                     }
+                    //     cout<<"gBest = "<<globalBestValue<<endl;
                     // cout<<endl<<"--------------------------------------------------\n"<<endl;    
                 }
                 cout<<"Optimal Solution After "<<iter<<": ";
@@ -265,7 +266,7 @@ class Swarm{
                         int getNeigh = HasNeighbourZero(p[i],p);
                         if(getNeigh!=-1){
                             p[getNeigh] = 1;
-                            p[i]= 1;
+                            // p[i] = 1;
                         }
                     }
                 }else{
@@ -297,7 +298,7 @@ int main() {
     double c1=0.8, c2=0.8, w=0.5;
     s.initialise(c1,c2,w);
     s.GenerateInitialSolution();
-    s.mainLoop(10000);
+    s.mainLoop(1000);
 
     return 0;
 }

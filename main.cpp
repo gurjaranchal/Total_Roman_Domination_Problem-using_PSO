@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
-#include "Heuristic1.h"
+#include "Heuristic.h"
 #include "Heuristic2.h"
+#include "Heuristic1.h"
 #include "Particle.h"
 using namespace std;
 class Swarm{
@@ -10,7 +11,7 @@ class Swarm{
         Particle* p;
         int t,minIndex,popsize, dim;
     public:
-        Swarm(int n,int d,const Graph& g) : graph(g){
+    Swarm(int n,int d,const Graph& g) : graph(g){
         popsize = n;
         dim =d;
         globalBestSolution = new double[d+1];
@@ -24,8 +25,8 @@ class Swarm{
       void GenerateInitialSolution(){
             int minimumObjective = INT_MAX;
             // apply Heuristic1 to generate Solutions
-            for(int itr = popsize;itr < popsize; itr++){
-                Heuristic1 H1(graph,dim);
+            for(int itr = 0;itr < popsize; itr++){
+                Heuristic H1(graph,dim);
                 H1.findLabelledSet();
                 double* l = H1.getLabelledSet();
                 copy(l, l + dim + 1, p[itr].position);
@@ -35,12 +36,12 @@ class Swarm{
                     minIndex = itr;
                 }
                 p[itr].localBest = p[itr].position;
-                //cout<<"S:"<<itr<<"  ";
-               // H1.printSolution(p[itr].position);
+            //     cout<<"S:"<<itr<<"  ";
+            //    H1.printSolution(p[itr].position);
             }
             
             // apply Heuristic2 to generate Solutions
-            for(int itr = 0;itr<popsize;itr++){
+            for(int itr = popsize;itr<popsize;itr++){
                 Heuristic2 H2(graph,dim);
                 H2.findLabelledSet();
                 double* l = H2.getLabelledSet();
@@ -262,7 +263,7 @@ int main() {
     // cout<<"Lower Bound: "<<lowerBound<<","<<"Upper Bound: "<<upperBound<<endl;
     Swarm s(500,node,G);
     s.GenerateInitialSolution();
-    s.mainLoop(1000);
+    s.mainLoop(500);
     return 0;
 }
 
